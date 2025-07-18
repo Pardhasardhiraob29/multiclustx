@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	outputFormat string
-	filePath string
+	exportOutputFormat string
+	exportFilePath string
 )
 
 var exportCmd = &cobra.Command{
@@ -52,14 +52,14 @@ var exportCmd = &cobra.Command{
 			log.Fatalf("Error writing to file %s: %v", filePath, err)
 		}
 
-		fmt.Printf("Command output exported to %s in raw format.\n", filePath)
+		fmt.Printf("Command output exported to %s in raw format.\n", exportFilePath)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(exportCmd)
 
-	exportCmd.Flags().StringVarP(&outputFormat, "output", "o", "json", "Output format (json, yaml, table)")
-	exportCmd.Flags().StringVarP(&filePath, "file", "f", "", "Output file path (required)")
+	exportCmd.Flags().StringVarP(&exportOutputFormat, "output", "o", "json", "Output format (json, yaml, table)")
+	exportCmd.Flags().StringVarP(&exportFilePath, "file", "f", "", "Output file path (required)")
 	exportCmd.MarkFlagRequired("file")
 }
