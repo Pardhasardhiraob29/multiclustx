@@ -1,6 +1,8 @@
 package main
 
-import "multiclustx/cmd"
+import (
+	"multiclustx/cmd"
+)
 
 func main() {
 	cmd.Execute()
