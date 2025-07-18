@@ -18,8 +18,9 @@ var (
 )
 
 var labelsCmd = &cobra.Command{
-	Use:   "labels",
+	Use:   "labels [command]",
 	Short: "Manage labels for Kubernetes contexts",
+	Args:  cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		lm, err := kube.NewLabelManager()
 		if err != nil {
