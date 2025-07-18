@@ -25,12 +25,6 @@ var labelsCmd = &cobra.Command{
 			log.Fatalf("Error creating label manager: %v", err)
 		}
 
-		defer func() {
-			if err := lm.SaveLabels(); err != nil {
-				log.Fatalf("Error saving labels: %v", err)
-			}
-		}()
-
 		if setLabel != "" {
 			if contextName == "" {
 				log.Fatal("Context name is required to set a label.")
@@ -69,6 +63,10 @@ var labelsCmd = &cobra.Command{
 				}
 			}
 		}
+
+		if err := lm.SaveLabels(); err != nil {
+			log.Fatalf("Error saving labels: %v", err)
+		}
 	},
 }
 
@@ -82,33 +80,9 @@ func init() {
 }
 
 func parseLabel(label string) (string, string) {
-	parts := splitN(label, "=", 2)
+	parts := strings.SplitN(label, "=", 2)
 	if len(parts) == 2 {
 		return parts[0], parts[1]
 	}
 	return label, ""
-}
-
-func splitN(s, sep string, n int) []string {
-	var result []string
-	idx := 0
-	for i := 0; i < n-1; i++ {
-		nextIdx := findNext(s, sep, idx)
-		if nextIdx == -1 {
-			break
-		}
-		result = append(result, s[idx:nextIdx])
-		idx = nextIdx + len(sep)
-	}
-	result = append(result, s[idx:])
-	return result
-}
-
-func findNext(s, sep string, start int) int {
-	for i := start; i <= len(s)-len(sep); i++ {
-		if s[i:i+len(sep)] == sep {
-			return i
-		}
-	}
-	return -1
 }
