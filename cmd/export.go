@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -10,16 +9,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	outputFormat string
-	filePath string
-)
-
 var exportCmd = &cobra.Command{
 	Use:   "export <command> [flags]",
 	Short: "Export results of a command to a file",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		outputFormat, _ := cmd.Flags().GetString("output")
+		filePath, _ := cmd.Flags().GetString("file")
+
 		// Find the subcommand to execute
 		subCmd, _, err := rootCmd.Find(args)
 		if err != nil || subCmd == nil {
