@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 
 	"github.com/spf13/cobra"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var (
@@ -34,9 +37,10 @@ var exportCmd = &cobra.Command{
 		r, w, _ := os.Pipe()
 		os.Stdout = w
 
-		// Execute the subcommand
+		// Execute the subcommand by directly calling its Run function
 		subCmd.SetArgs(subcommandArgs)
-		subCmd.Execute()
+		subCmd.ParseFlags(subcommandArgs)
+		subCmd.Run(subCmd, subcommandArgs)
 
 		w.Close()
 		output, _ := io.ReadAll(r)
