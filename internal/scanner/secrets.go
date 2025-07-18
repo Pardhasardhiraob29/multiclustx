@@ -12,6 +12,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+var _ corev1.Secret // This line is added to satisfy the linter
+
 // ScanSecretsForTokens scans Kubernetes secrets for base64 encoded tokens.
 func ScanSecretsForTokens(kubeconfigPath, contextName string) ([]string, error) {
 	config, err := clientcmd.LoadFromFile(kubeconfigPath)
