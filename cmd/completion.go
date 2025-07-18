@@ -61,7 +61,7 @@ Powershell:
 		case "fish":
 			cmd.Root().GenFishCompletion(os.Stdout, true)
 		case "powershell":
-			cmd.Root().GenPowershellCompletionWithDesc(os.Stdout)
+			cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
 		}
 	},
 }
