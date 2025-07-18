@@ -33,32 +33,37 @@ var labelsCmd = &cobra.Command{
 			}
 		}()
 
-		if setLabel != "" {
-			if contextName == "" {
+		setLabelVal, _ := cmd.Flags().GetString("set")
+		getLabelVal, _ := cmd.Flags().GetString("get")
+		deleteLabelVal, _ := cmd.Flags().GetString("delete")
+		contextNameVal, _ := cmd.Flags().GetString("context")
+
+		if setLabelVal != "" {
+			if contextNameVal == "" {
 				log.Fatal("Context name is required to set a label.")
 			}
-			key, value := parseLabel(setLabel)
-			lm.SetLabel(contextName, key, value)
-			fmt.Printf("Label '%s=%s' set for context '%s'.\n", key, value, contextName)
-            return
-        } else if getLabel != "" {
-            if contextName == "" {
-                log.Fatal("Context name is required to get a label.")
-            }
-            labels := lm.GetLabels(contextName)
-            if value, ok := labels[getLabel]; ok {
-                fmt.Printf("Label '%s' for context '%s': %s\n", getLabel, contextName, value)
-            } else {
-                fmt.Printf("Label '%s' not found for context '%s'.\n", getLabel, contextName)
-            }
-            return
-        } else if deleteLabel != "" {
-            if contextName == "" {
-                log.Fatal("Context name is required to delete a label.")
-            }
-            lm.DeleteLabel(contextName, deleteLabel)
-            fmt.Printf("Label '%s' deleted from context '%s'.\n", deleteLabel, contextName)
-            return
+			key, value := parseLabel(setLabelVal)
+			lm.SetLabel(contextNameVal, key, value)
+			fmt.Printf("Label '%s=%s' set for context '%s'.\n", key, value, contextNameVal)
+			return
+		} else if getLabelVal != "" {
+			if contextNameVal == "" {
+				log.Fatal("Context name is required to get a label.")
+			}
+			labels := lm.GetLabels(contextNameVal)
+			if value, ok := labels[getLabelVal]; ok {
+				fmt.Printf("Label '%s' for context '%s': %s\n", getLabelVal, contextNameVal, value)
+			} else {
+				fmt.Printf("Label '%s' not found for context '%s'.\n", getLabelVal, contextNameVal)
+			}
+			return
+		} else if deleteLabelVal != "" {
+			if contextNameVal == "" {
+				log.Fatal("Context name is required to delete a label.")
+			}
+			lm.DeleteLabel(contextNameVal, deleteLabelVal)
+			fmt.Printf("Label '%s' deleted from context '%s'.\n", deleteLabelVal, contextNameVal)
+			return
 		} else {
 			// List all labels for all contexts
 			allLabels := lm.GetAllContextLabels()
