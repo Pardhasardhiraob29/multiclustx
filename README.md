@@ -38,4 +38,15 @@ multiclustx scan secrets
 
 # Generate shell autocompletion
 multiclustx completion bash
+
+# Serve web UI
+multiclustx serve-web
+
+# GitOps sync (placeholder)
+multiclustx gitops
+
+# Context switch (placeholder)
+multiclustx switch <context-name>
+
+# ArgoCD-like sync dashboard (future extension)
 ```
