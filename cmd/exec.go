@@ -8,6 +8,7 @@ import (
 
 	"multiclustx/internal/executor"
 	"multiclustx/internal/kube"
+	"multiclustx/pkg/types"
 
 	"github.com/spf13/cobra"
 )
@@ -34,7 +35,7 @@ var execCmd = &cobra.Command{
 			log.Fatalf("Error creating label manager: %v", err)
 		}
 
-		var contextsToExecute []multiclustx.ContextInfo
+		var contextsToExecute []types.ContextInfo
 		if allClusters {
 			contextsToExecute = contexts
 		} else if labelFilter != "" {
