@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"multiclustx/internal/kube"
 	"multiclustx/internal/rbac"
@@ -26,7 +27,15 @@ var auditCmd = &cobra.Command{
 		fmt.Printf("%-30s %-15s %-20s\n", "-------", "-----------", "-----")
 
 		for _, context := range contexts {
-			rulesReview, err := rbac.CheckRBAC(os.Getenv("KUBECONFIG"), context.Name)
+			kubeconfigPath := os.Getenv("KUBECONFIG")
+			if kubeconfigPath == "" {
+				home, err := os.UserHomeDir()
+				if err != nil {
+					log.Fatalf("Error getting user home directory: %v", err)
+				}
+				kubeconfigPath = filepath.Join(home, ".kube", "config")
+			}
+			rulesReview, err := rbac.CheckRBAC(kubeconfigPath, context.Name)
 			if err != nil {
 				fmt.Printf("%-30s %-15s %-20s\n", context.Name, "Error", err.Error())
 				continue
