@@ -34,8 +34,11 @@ var auditCmd = &cobra.Command{
 
 			status := "OK"
 			rules := ""
-			for _, rule := range rulesReview.Status.Rules {
-				rules += fmt.Sprintf("Verbs: %v, Resources: %v\n", rule.Verbs, rule.Resources)
+			for _, rule := range rulesReview.Status.ResourceRules {
+				rules += fmt.Sprintf("Verbs: %v, Resources: %v, ResourceNames: %v\n", rule.Verbs, rule.Resources, rule.ResourceNames)
+			}
+			for _, rule := range rulesReview.Status.NonResourceRules {
+				rules += fmt.Sprintf("Verbs: %v, NonResourceURLs: %v\n", rule.Verbs, rule.NonResourceURLs)
 			}
 			fmt.Printf("%-30s %-15s %-20s\n", context.Name, status, rules)
 		}
