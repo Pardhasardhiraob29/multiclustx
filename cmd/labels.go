@@ -2,18 +2,115 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
+	"multiclustx/internal/kube"
 
 	"github.com/spf13/cobra"
+)
+
+var ( 
+	setLabel string
+	getLabel string
+	deleteLabel string
+	contextName string
 )
 
 var labelsCmd = &cobra.Command{
 	Use:   "labels",
 	Short: "Manage labels for Kubernetes contexts",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Labels command not yet implemented.")
+		lm, err := kube.NewLabelManager()
+		if err != nil {
+			log.Fatalf("Error creating label manager: %v", err)
+		}
+
+		defer func() {
+			if err := lm.SaveLabels(); err != nil {
+				log.Fatalf("Error saving labels: %v", err)
+			}
+		}()
+
+		if setLabel != "" {
+			if contextName == "" {
+				log.Fatal("Context name is required to set a label.")
+			}
+			key, value := parseLabel(setLabel)
+			lm.SetLabel(contextName, key, value)
+			fmt.Printf("Label '%s=%s' set for context '%s'.\n", key, value, contextName)
+		} else if getLabel != "" {
+			if contextName == "" {
+				log.Fatal("Context name is required to get a label.")
+			}
+			labels := lm.GetLabels(contextName)
+			if value, ok := labels[getLabel]; ok {
+				fmt.Printf("Label '%s' for context '%s': %s\n", getLabel, contextName, value)
+			} else {
+				fmt.Printf("Label '%s' not found for context '%s'.\n", getLabel, contextName)
+			}
+		} else if deleteLabel != "" {
+			if contextName == "" {
+				log.Fatal("Context name is required to delete a label.")
+			}
+			lm.DeleteLabel(contextName, deleteLabel)
+			fmt.Printf("Label '%s' deleted from context '%s'.\n", deleteLabel, contextName)
+		} else {
+			// List all labels for all contexts
+			allLabels := lm.GetAllContextLabels()
+			if len(allLabels) == 0 {
+				fmt.Println("No labels found.")
+				return
+			}
+			fmt.Println("All Labels:")
+			for ctx, labels := range allLabels {
+				fmt.Printf("  Context: %s\n", ctx)
+				for key, value := range labels {
+					fmt.Printf("    %s: %s\n", key, value)
+				}
+			}
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(labelsCmd)
+
+	labelsCmd.Flags().StringVarP(&setLabel, "set", "s", "", "Set a label for a context (e.g., 'env=prod')")
+	labelsCmd.Flags().StringVarP(&getLabel, "get", "g", "", "Get a label for a context by key")
+	labelsCmd.Flags().StringVarP(&deleteLabel, "delete", "d", "", "Delete a label from a context by key")
+	labelsCmd.Flags().StringVarP(&contextName, "context", "c", "", "Specify the context name")
+}
+
+func parseLabel(label string) (string, string) {
+	parts := splitN(label, "=", 2)
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return label, ""
+}
+
+func splitN(s, sep string, n int) []string {
+	var result []string
+	idx := 0
+	for i := 0; i < n-1; i++ {
+		nextIdx := findNext(s, sep, idx)
+		if nextIdx == -1 {
+			break
+		}
+		result = append(result, s[idx:nextIdx])
+		idx = nextIdx + len(sep)
+	}
+	result = append(result, s[idx:])
+	return result
+}
+
+func findNext(s, sep string, start int) int {
+	for i := start; i <= len(s)-len(sep); i++ {
+		if s[i:i+len(sep)] == sep {
+			return i
+		}
+	}
+	return -1
 }
