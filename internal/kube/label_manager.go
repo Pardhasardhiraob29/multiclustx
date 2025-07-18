@@ -10,7 +10,7 @@ import (
 	"multiclustx/pkg/types"
 )
 
-const labelsFileName = ".multiclustx_labels.json"
+var labelsFileName = ".multiclustx_labels.json"
 
 // LabelManager handles loading and saving of context labels.
 type LabelManager struct {
