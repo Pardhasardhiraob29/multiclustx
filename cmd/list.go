@@ -3,11 +3,9 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"multiclustx/internal/kube"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -22,15 +20,9 @@ var listCmd = &cobra.Command{
 
 		contexts := kube.GetContexts(config)
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Name", "Cluster", "User", "Namespace"})
-
 		for _, context := range contexts {
-			row := []string{context.Name, context.Cluster, context.AuthInfo, context.Namespace}
-			table.Append(row)
-		}
-
-		table.Render()
+            fmt.Printf("Name: %s, Cluster: %s, User: %s, Namespace: %s\n", context.Name, context.Cluster, context.AuthInfo, context.Namespace)
+        }
 	},
 }
 
