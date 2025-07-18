@@ -49,7 +49,7 @@ var exportCmd = &cobra.Command{
 			// For now, we'll just pass it through. In a real scenario, you'd parse and re-marshal.
 			formattedOutput = output
 		case "yaml":
-\t		// Assuming the subcommand output is already YAML or can be converted
+			// Assuming the subcommand output is already YAML or can be converted
 			// For now, we'll just pass it through.
 			formattedOutput = output
 		case "table", "":
