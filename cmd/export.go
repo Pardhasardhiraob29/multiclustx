@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 
 	"github.com/spf13/cobra"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var (
@@ -19,10 +22,14 @@ var exportCmd = &cobra.Command{
 	Short: "Export results of a command to a file",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// The first argument is the subcommand to execute (e.g., "list", "status")
+		subcommandName := args[0]
+		subcommandArgs := args[1:]
+
 		// Find the subcommand to execute
-		subCmd, _, err := rootCmd.Find(args)
+		subCmd, _, err := rootCmd.Find(append([]string{subcommandName}, subcommandArgs...))
 		if err != nil || subCmd == nil {
-			log.Fatalf("Unknown command: %s", args[0])
+			log.Fatalf("Unknown command: %s", subcommandName)
 		}
 
 		// Create a buffer to capture the subcommand's output
@@ -31,7 +38,7 @@ var exportCmd = &cobra.Command{
 		os.Stdout = w
 
 		// Execute the subcommand
-		subCmd.SetArgs(args[1:]) // Pass remaining args to subcommand
+		subCmd.SetArgs(subcommandArgs)
 		subCmd.Execute()
 
 		w.Close()
