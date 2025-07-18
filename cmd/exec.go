@@ -2,18 +2,57 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	os"
+	"path/filepath"
+
+	"multiclustx/internal/executor"
+	"multiclustx/internal/kube"
 
 	"github.com/spf13/cobra"
 )
 
+var (
+	allClusters bool
+	label string
+)
+
 var execCmd = &cobra.Command{
-	Use:   "exec",
+	Use:   "exec [command]",
 	Short: "Execute kubectl-like commands across multiple clusters",
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Exec command not yet implemented.")
+		config, err := kube.LoadKubeconfig("")
+		if err != nil {
+			log.Fatalf("Error loading kubeconfig: %v", err)
+		}
+
+		contexts := kube.GetContexts(config)
+
+		for _, context := range contexts {
+			kubeconfigPath := os.Getenv("KUBECONFIG")
+			if kubeconfigPath == "" {
+				home, err := os.UserHomeDir()
+				if err != nil {
+					log.Fatalf("Error getting user home directory: %v", err)
+				}
+				kubeconfigPath = filepath.Join(home, ".kube", "config")
+			}
+
+			fmt.Printf("\n--- Executing on context: %s ---\n", context.Name)
+			stdout, stderr, err := executor.ExecuteKubectlCommand(kubeconfigPath, context.Name, args)
+			if err != nil {
+				fmt.Printf("Error: %v\nStderr: %s\n", err, stderr)
+			} else {
+				fmt.Printf("Stdout:\n%s\n", stdout)
+			}
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(execCmd)
+
+	execCmd.Flags().BoolVarP(&allClusters, "all-clusters", "a", false, "Run command across all clusters")
+	execCmd.Flags().StringVarP(&label, "label", "l", "", "Run command on clusters with the specified label")
 }
