@@ -1,15 +1,12 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 
 	"github.com/spf13/cobra"
-	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var (
