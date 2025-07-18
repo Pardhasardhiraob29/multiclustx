@@ -21,9 +21,9 @@ var listCmd = &cobra.Command{
 		contexts := kube.GetContexts(config)
 
 				fmt.Printf("%-30s %-30s %-30s %-30s\n", "NAME", "CLUSTER", "USER", "NAMESPACE")
-		fm t.Printf("%-30s %-30s %-30s %-30s\n", "----", "-------", "----", "---------")
+		fmt.Printf("%-30s %-30s %-30s %-30s\n", "----", "-------", "----", "---------")
 		for _, context := range contexts {
-			fm t.Printf("%-30s %-30s %-30s %-30s\n", context.Name, context.Cluster, context.AuthInfo, context.Namespace)
+			fmt.Printf("%-30s %-30s %-30s %-30s\n", context.Name, context.Cluster, context.AuthInfo, context.Namespace)
 		}
 	},
 }
