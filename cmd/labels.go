@@ -40,22 +40,25 @@ var labelsCmd = &cobra.Command{
 			key, value := parseLabel(setLabel)
 			lm.SetLabel(contextName, key, value)
 			fmt.Printf("Label '%s=%s' set for context '%s'.\n", key, value, contextName)
-		} else if getLabel != "" {
-			if contextName == "" {
-				log.Fatal("Context name is required to get a label.")	
-			}
-			labels := lm.GetLabels(contextName)
-			if value, ok := labels[getLabel]; ok {
-				fmt.Printf("Label '%s' for context '%s': %s\n", getLabel, contextName, value)
-			} else {
-				fmt.Printf("Label '%s' not found for context '%s'.\n", getLabel, contextName)
-			}
-		} else if deleteLabel != "" {
-			if contextName == "" {
-				log.Fatal("Context name is required to delete a label.")
-			}
-			lm.DeleteLabel(contextName, deleteLabel)
-			fmt.Printf("Label '%s' deleted from context '%s'.\n", deleteLabel, contextName)
+            return
+        } else if getLabel != "" {
+            if contextName == "" {
+                log.Fatal("Context name is required to get a label.")
+            }
+            labels := lm.GetLabels(contextName)
+            if value, ok := labels[getLabel]; ok {
+                fmt.Printf("Label '%s' for context '%s': %s\n", getLabel, contextName, value)
+            } else {
+                fmt.Printf("Label '%s' not found for context '%s'.\n", getLabel, contextName)
+            }
+            return
+        } else if deleteLabel != "" {
+            if contextName == "" {
+                log.Fatal("Context name is required to delete a label.")
+            }
+            lm.DeleteLabel(contextName, deleteLabel)
+            fmt.Printf("Label '%s' deleted from context '%s'.\n", deleteLabel, contextName)
+            return
 		} else {
 			// List all labels for all contexts
 			allLabels := lm.GetAllContextLabels()
