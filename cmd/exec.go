@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
-		"os"
+	"os"
 	"path/filepath"
 
 	"multiclustx/internal/executor"
@@ -14,7 +14,7 @@ import (
 
 var (
 	allClusters bool
-	label string
+	labelFilter string
 )
 
 var execCmd = &cobra.Command{
@@ -29,7 +29,27 @@ var execCmd = &cobra.Command{
 
 		contexts := kube.GetContexts(config)
 
-		for _, context := range contexts {
+		lm, err := kube.NewLabelManager()
+		if err != nil {
+			log.Fatalf("Error creating label manager: %v", err)
+		}
+
+		var contextsToExecute []multiclustx.ContextInfo
+		if allClusters {
+			contextsToExecute = contexts
+		} else if labelFilter != "" {
+			contextsToExecute = kube.FilterContextsByLabel(contexts, lm, labelFilter)
+		} else {
+			// If no flags are specified, execute on the current context (not yet implemented)
+			log.Fatal("Please specify --all-clusters or --label.")
+		}
+
+		if len(contextsToExecute) == 0 {
+			fmt.Println("No contexts found to execute on.")
+			return
+		}
+
+		for _, context := range contextsToExecute {
 			kubeconfigPath := os.Getenv("KUBECONFIG")
 			if kubeconfigPath == "" {
 				home, err := os.UserHomeDir()
@@ -54,5 +74,5 @@ func init() {
 	rootCmd.AddCommand(execCmd)
 
 	execCmd.Flags().BoolVarP(&allClusters, "all-clusters", "a", false, "Run command across all clusters")
-	execCmd.Flags().StringVarP(&label, "label", "l", "", "Run command on clusters with the specified label")
+	execCmd.Flags().StringVarP(&labelFilter, "label", "l", "", "Run command on clusters with the specified label")
 }
