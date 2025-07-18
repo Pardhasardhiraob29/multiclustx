@@ -27,6 +27,12 @@ var labelsCmd = &cobra.Command{
 			log.Fatalf("Error creating label manager: %v", err)
 		}
 
+		defer func() {
+			if err := lm.SaveLabels(); err != nil {
+				log.Fatalf("Error saving labels: %v", err)
+			}
+		}()
+
 		if setLabel != "" {
 			if contextName == "" {
 				log.Fatal("Context name is required to set a label.")
@@ -36,7 +42,7 @@ var labelsCmd = &cobra.Command{
 			fmt.Printf("Label '%s=%s' set for context '%s'.\n", key, value, contextName)
 		} else if getLabel != "" {
 			if contextName == "" {
-				log.Fatal("Context name is required to get a label.")
+				log.Fatal("Context name is required to get a label.")	
 			}
 			labels := lm.GetLabels(contextName)
 			if value, ok := labels[getLabel]; ok {
@@ -64,10 +70,6 @@ var labelsCmd = &cobra.Command{
 					fmt.Printf("    %s: %s\n", key, value)
 				}
 			}
-		}
-
-		if err := lm.SaveLabels(); err != nil {
-			log.Fatalf("Error saving labels: %v", err)
 		}
 	},
 }
