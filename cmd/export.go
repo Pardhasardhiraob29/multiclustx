@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	gopkg.in/yaml.v2
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var (

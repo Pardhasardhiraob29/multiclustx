@@ -12,7 +12,7 @@ import (
 	"multiclustx/pkg/types"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var (
@@ -93,7 +93,7 @@ var execCmd = &cobra.Command{
 			}
 			fmt.Println(string(jsonData))
 		case "yaml":
-			yamlData, err := yaml.Marshal(results)
+			yamlData, err := sigsyaml.Marshal(results)
 			if err != nil {
 				log.Fatalf("Error marshaling YAML: %v", err)
 			}
