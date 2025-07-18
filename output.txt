@@ -1,0 +1,5 @@
+NAME                           CLUSTER                        USER                           NAMESPACE                     
+----                           -------                        ----                           ---------                     
+its1                           its1-cluster                   its1-admin                                                   
+wds1                           wds1-cluster                   wds1-admin                     default                       
+kind-kubeflex                  kind-kubeflex                  kind-kubeflex                                                
