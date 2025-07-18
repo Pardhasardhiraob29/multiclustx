@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 func TestLoadKubeconfig(t *testing.T) {
