@@ -2,7 +2,6 @@ package kube
 
 import (
 	"errors"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -10,8 +9,6 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
 
 	corev1typed "k8s.io/client-go/kubernetes/typed/core/v1"
 )
