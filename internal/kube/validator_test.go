@@ -45,9 +45,6 @@ func (m *MockClientset) CoreV1() corev1typed.CoreV1Interface {
 
 // ... (other mock methods for other API groups if needed)
 
-// mockNewForConfig is a helper function to mock kubernetes.NewForConfig
-var mockNewForConfig func(config *rest.Config) (*kubernetes.Clientset, error)
-
 func TestPingTest(t *testing.T) {
 	// Create a mock clientset
 	mockClientset := new(MockClientset)
@@ -57,16 +54,8 @@ func TestPingTest(t *testing.T) {
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
 
-	// Set the mockNewForConfig function
-	mockNewForConfig = func(config *rest.Config) (*kubernetes.Clientset, error) {
-		return &kubernetes.Clientset{}, nil // Return a dummy clientset for now
-	}
-
-	// Create a dummy rest.Config
-	restConfig := &rest.Config{}
-
 	// Test successful ping
-	err := PingTest(restConfig)
+	err := PingTest(mockClientset)
 	if err != nil {
 		t.Errorf("PingTest failed: %v", err)
 	}
@@ -75,7 +64,7 @@ func TestPingTest(t *testing.T) {
 	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("connection refused"))
 
 	// Test failed ping
-	err = PingTest(restConfig)
+	err = PingTest(mockClientset)
 	if err == nil {
 		t.Error("PingTest did not return an error for failed connection")
 	}
@@ -90,16 +79,8 @@ func TestGetServerVersion(t *testing.T) {
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
 
-	// Set the mockNewForConfig function
-	mockNewForConfig = func(config *rest.Config) (*kubernetes.Clientset, error) {
-		return &kubernetes.Clientset{}, nil // Return a dummy clientset for now
-	}
-
-	// Create a dummy rest.Config
-	restConfig := &rest.Config{}
-
 	// Test successful version retrieval
-	version, err := GetServerVersion(restConfig)
+	version, err := GetServerVersion(mockClientset)
 	if err != nil {
 		t.Errorf("GetServerVersion failed: %v", err)
 	}
@@ -112,7 +93,7 @@ func TestGetServerVersion(t *testing.T) {
 	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("failed to get version"))
 
 	// Test failed version retrieval
-	_, err = GetServerVersion(restConfig)
+	_, err = GetServerVersion(mockClientset)
 	if err == nil {
 		t.Error("GetServerVersion did not return an error for failed version retrieval")
 	}
