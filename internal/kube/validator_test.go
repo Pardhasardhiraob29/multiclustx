@@ -4,9 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 func TestPingTest(t *testing.T) {
