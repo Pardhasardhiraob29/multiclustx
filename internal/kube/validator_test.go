@@ -3,9 +3,10 @@ package kube
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
@@ -84,7 +85,7 @@ func createTempKubeconfig(t *testing.T, serverURL string) string {
 	}
 
 	// Write the kubeconfig to a temporary file
-	tmpFile, err := ioutil.TempFile("", "kubeconfig")
+	tmpFile, err := os.CreateTemp("", "kubeconfig")
 	if err != nil {
 		t.Fatalf("Failed to create temp kubeconfig file: %v", err)
 	}
