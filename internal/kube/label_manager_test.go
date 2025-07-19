@@ -17,13 +17,10 @@ func TestLabelManager(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Override the labelsFileName for testing
-	oldLabelsFileName := labelsFileName
-	labelsFileName = filepath.Join(tmpDir, ".multiclustx_labels.json")
-	defer func() { labelsFileName = oldLabelsFileName }()
+	testLabelsFilePath := filepath.Join(tmpDir, ".multiclustx_labels.json")
 
 	// Test NewLabelManager and initial state
-	lm, err := NewLabelManager()
+	lm, err := NewLabelManager(testLabelsFilePath)
 	if err != nil {
 		t.Fatalf("NewLabelManager failed: %v", err)
 	}
@@ -55,7 +52,7 @@ func TestLabelManager(t *testing.T) {
 	}
 
 	// Test loading labels from file
-	lm2, err := NewLabelManager()
+	lm2, err := NewLabelManager(testLabelsFilePath)
 	if err != nil {
 		t.Fatalf("NewLabelManager (after save) failed: %v", err)
 	}
@@ -85,7 +82,7 @@ func TestLabelManager(t *testing.T) {
 		{Name: "context3"},
 	}
 
-	lm3, err := NewLabelManager()
+	lm3, err := NewLabelManager(testLabelsFilePath)
 	if err != nil {
 		t.Fatalf("NewLabelManager (for filter) failed: %v", err)
 	}

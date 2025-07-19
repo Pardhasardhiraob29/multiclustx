@@ -19,19 +19,22 @@ type LabelManager struct {
 }
 
 // NewLabelManager creates a new LabelManager and loads existing labels.
-func NewLabelManager() (*LabelManager, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, fmt.Errorf("error getting user home directory: %w", err)
+// If filePath is empty, it uses the default labelsFileName.
+func NewLabelManager(filePath string) (*LabelManager, error) {
+	if filePath == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("error getting user home directory: %w", err)
+		}
+		filePath = filepath.Join(home, labelsFileName)
 	}
-	filePath := filepath.Join(home, labelsFileName)
 
 	lm := &LabelManager{
 		labels: make(map[string]map[string]string),
 		filePath: filePath,
 	}
 
-	err = lm.loadLabels()
+	err := lm.loadLabels()
 	if err != nil && !os.IsNotExist(err) {
 		return nil, fmt.Errorf("error loading labels: %w", err)
 	}
