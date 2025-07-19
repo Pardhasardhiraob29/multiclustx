@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 
-	corev1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 // MockDiscoveryClient is a mock implementation of DiscoveryInterface.
@@ -58,13 +58,6 @@ func TestPingTest(t *testing.T) {
 	// Configure mock for successful ping
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
-
-	// Override kubernetes.NewForConfig to return our mock clientset
-	oldNewForConfig := kubernetes.NewForConfig
-	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
-		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
-	}
-	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
 
 	// Create a dummy kubeconfig for the test
 	config := &api.Config{
@@ -109,13 +102,6 @@ func TestGetServerVersion(t *testing.T) {
 	// Configure mock for successful version retrieval
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
-
-	// Override kubernetes.NewForConfig to return our mock clientset
-	oldNewForConfig := kubernetes.NewForConfig
-	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
-		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
-	}
-	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
 
 	// Create a dummy kubeconfig for the test
 	config := &api.Config{
