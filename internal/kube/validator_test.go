@@ -63,7 +63,7 @@ func (m *MockDiscoveryClient) ServerPreferredNamespacedResources() ([]*metav1.AP
 	return args.Get(0).([]*metav1.APIResourceList), args.Error(1)
 }
 
-func (m *MockDiscoveryClient) OpenAPISchema() (*openapi_v2.Document, error) {
+func (m *MockDiscoveryClient) OpenAPISchema() (interface{}, error) {
 	args := m.Called()
 	return nil, args.Error(1)
 }
