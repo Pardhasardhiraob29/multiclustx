@@ -6,16 +6,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 
-	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	corev1typed "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 // MockDiscoveryClient is a mock implementation of DiscoveryInterface.
@@ -43,9 +40,9 @@ func (m *MockClientset) Discovery() discovery.DiscoveryInterface {
 	return args.Get(0).(discovery.DiscoveryInterface)
 }
 
-func (m *MockClientset) CoreV1() corev1.CoreV1Interface {
+func (m *MockClientset) CoreV1() corev1typed.CoreV1Interface {
 	args := m.Called()
-	return args.Get(0).(corev1.CoreV1Interface)
+	return args.Get(0).(corev1typed.CoreV1Interface)
 }
 
 // ... (other mock methods for other API groups if needed)
