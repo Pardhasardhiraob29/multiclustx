@@ -48,6 +48,9 @@ func (m *MockClientset) CoreV1() corev1typed.CoreV1Interface {
 
 // ... (other mock methods for other API groups if needed)
 
+// mockNewForConfig is a helper function to mock kubernetes.NewForConfig
+var mockNewForConfig func(config *rest.Config) (*kubernetes.Clientset, error)
+
 func TestPingTest(t *testing.T) {
 	// Create a mock clientset
 	mockClientset := new(MockClientset)
@@ -57,12 +60,10 @@ func TestPingTest(t *testing.T) {
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
 
-	// Override kubernetes.NewForConfig to return our mock clientset
-	oldNewForConfig := kubernetes.NewForConfig
-	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
-		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
+	// Set the mockNewForConfig function
+	mockNewForConfig = func(config *rest.Config) (*kubernetes.Clientset, error) {
+		return &kubernetes.Clientset{}, nil // Return a dummy clientset for now
 	}
-	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
 
 	// Create a dummy rest.Config
 	restConfig := &rest.Config{}
@@ -92,12 +93,10 @@ func TestGetServerVersion(t *testing.T) {
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
 
-	// Override kubernetes.NewForConfig to return our mock clientset
-	oldNewForConfig := kubernetes.NewForConfig
-	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
-		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
+	// Set the mockNewForConfig function
+	mockNewForConfig = func(config *rest.Config) (*kubernetes.Clientset, error) {
+		return &kubernetes.Clientset{}, nil // Return a dummy clientset for now
 	}
-	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
 
 	// Create a dummy rest.Config
 	restConfig := &rest.Config{}
