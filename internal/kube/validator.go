@@ -3,7 +3,7 @@ package kube
 import (
 	"fmt"
 
-	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -22,8 +22,8 @@ func PingTest(kubeconfigPath, contextName string) error {
 		return fmt.Errorf("error creating rest config: %w", err)
 	}
 
-	// Attempt to create a discovery client to check reachability
-	_, err = rest.RESTClientFor(restConfig)
+	// Attempt to create a clientset to check reachability
+	_, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to API server: %w", err)
 	}
@@ -45,12 +45,12 @@ func GetServerVersion(kubeconfigPath, contextName string) (string, error) {
 		return "", fmt.Errorf("error creating rest config: %w", err)
 	}
 
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(restConfig)
+	clientset, err := kubernetes.NewForConfig(restConfig)
 	if err != nil {
-		return "", fmt.Errorf("error creating discovery client: %w", err)
+		return "", fmt.Errorf("error creating clientset: %w", err)
 	}
 
-	serverVersion, err := discoveryClient.ServerVersion()
+	serverVersion, err := clientset.Discovery().ServerVersion()
 	if err != nil {
 		return "", fmt.Errorf("error getting server version: %w", err)
 	}
