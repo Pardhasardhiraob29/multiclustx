@@ -1,99 +1,152 @@
 package kube
 
 import (
-	"os"
-	"path/filepath"
+	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/mock"
+	"k8s.io/apimachinery/pkg/version"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
 )
 
+// MockDiscoveryClient is a mock implementation of DiscoveryInterface.
+type MockDiscoveryClient struct {
+	mock.Mock
+}
+
+func (m *MockDiscoveryClient) ServerVersion() (*version.Info, error) {
+	args := m.Called()
+	return args.Get(0).(*version.Info), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) RESTClient() rest.Interface {
+	args := m.Called()
+	return args.Get(0).(rest.Interface)
+}
+
+// MockClientset is a mock implementation of kubernetes.Interface.
+type MockClientset struct {
+	mock.Mock
+}
+
+func (m *MockClientset) Discovery() discovery.DiscoveryInterface {
+	args := m.Called()
+	return args.Get(0).(discovery.DiscoveryInterface)
+}
+
+func (m *MockClientset) CoreV1() corev1.CoreV1Interface {
+	args := m.Called()
+	return args.Get(0).(corev1.CoreV1Interface)
+}
+
+// ... (other mock methods for other API groups if needed)
+
 func TestPingTest(t *testing.T) {
-	// Create a temporary kubeconfig file for testing
-	tmpDir, err := os.MkdirTemp("", "kubeconfig-test")
+	// Create a mock clientset
+	mockClientset := new(MockClientset)
+	mockDiscoveryClient := new(MockDiscoveryClient)
+
+	// Configure mock for successful ping
+	mockClientset.On("Discovery").Return(mockDiscoveryClient)
+	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
+
+	// Override kubernetes.NewForConfig to return our mock clientset
+	oldNewForConfig := kubernetes.NewForConfig
+	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
+		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
+	}
+	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
+
+	// Create a dummy kubeconfig for the test
+	config := &api.Config{
+		CurrentContext: "test-context",
+		Contexts: map[string]*api.Context{
+			"test-context": {},
+		},
+	}
+	// Write the kubeconfig to a temporary file
+	tmpFile, err := os.CreateTemp("", "kubeconfig")
 	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
+		t.Fatalf("Failed to create temp kubeconfig file: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer tmpFile.Close()
 
-	testKubeconfigPath := filepath.Join(tmpDir, "config")
-	// Minimal valid kubeconfig content
-	kubeconfigContent := `
-apiVersion: v1
-clusters:
-- cluster:
-    server: https://localhost:8080
-  name: test-cluster
-contexts:
-- context:
-    cluster: test-cluster
-    user: test-user
-  name: test-context
-current-context: test-context
-kind: Config
-preferences: {}
-users:
-- name: test-user
-  user:
-    token: some-token
-`
-	if err := os.WriteFile(testKubeconfigPath, []byte(kubeconfigContent), 0600); err != nil {
-		t.Fatalf("Failed to write kubeconfig file: %v", err)
+	err = clientcmd.WriteToFile(config, tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to write kubeconfig to file: %v", err)
 	}
 
-	// Test failed ping (connection refused is expected for localhost:8080)
-	err = PingTest(testKubeconfigPath, "test-context")
+	// Test successful ping
+	err = PingTest(tmpFile.Name(), "test-context")
+	if err != nil {
+		t.Errorf("PingTest failed: %v", err)
+	}
+
+	// Configure mock for failed ping
+	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, errors.New("connection refused"))
+
+	// Test failed ping
+	err = PingTest(tmpFile.Name(), "test-context")
 	if err == nil {
-		t.Error("PingTest did not return an error for unreachable server")
-	}
-
-	// Test failed ping (e.g., invalid kubeconfig path)
-	err = PingTest("/nonexistent/path/kubeconfig", "test-context")
-	if err == nil {
-		t.Error("PingTest did not return an error for invalid kubeconfig path")
+		t.Error("PingTest did not return an error for failed connection")
 	}
 }
 
 func TestGetServerVersion(t *testing.T) {
-	// Create a temporary kubeconfig file for testing
-	tmpDir, err := os.MkdirTemp("", "kubeconfig-test")
+	// Create a mock clientset
+	mockClientset := new(MockClientset)
+	mockDiscoveryClient := new(MockDiscoveryClient)
+
+	// Configure mock for successful version retrieval
+	mockClientset.On("Discovery").Return(mockDiscoveryClient)
+	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
+
+	// Override kubernetes.NewForConfig to return our mock clientset
+	oldNewForConfig := kubernetes.NewForConfig
+	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
+		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
+	}
+	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
+
+	// Create a dummy kubeconfig for the test
+	config := &api.Config{
+		CurrentContext: "test-context",
+		Contexts: map[string]*api.Context{
+			"test-context": {},
+		},
+	}
+	// Write the kubeconfig to a temporary file
+	tmpFile, err := os.CreateTemp("", "kubeconfig")
 	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
+		t.Fatalf("Failed to create temp kubeconfig file: %v", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer tmpFile.Close()
 
-	testKubeconfigPath := filepath.Join(tmpDir, "config")
-	// Minimal valid kubeconfig content
-	kubeconfigContent := `
-apiVersion: v1
-clusters:
-- cluster:
-    server: https://localhost:8080
-  name: test-cluster
-contexts:
-- context:
-    cluster: test-cluster
-    user: test-user
-  name: test-context
-current-context: test-context
-kind: Config
-preferences: {}
-users:
-- name: test-user
-  user:
-    token: some-token
-`
-	if err := os.WriteFile(testKubeconfigPath, []byte(kubeconfigContent), 0600); err != nil {
-		t.Fatalf("Failed to write kubeconfig file: %v", err)
+	err = clientcmd.WriteToFile(config, tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to write kubeconfig to file: %v", err)
 	}
 
-	// Test failed version retrieval (connection refused is expected for localhost:8080)
-	_, err = GetServerVersion(testKubeconfigPath, "test-context")
+	// Test successful version retrieval
+	version, err := GetServerVersion(tmpFile.Name(), "test-context")
+	if err != nil {
+		t.Errorf("GetServerVersion failed: %v", err)
+	}
+
+	if version != "v1.23.4" {
+		t.Errorf("Expected version v1.23.4, got %s", version)
+	}
+
+	// Configure mock for failed version retrieval
+	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, errors.New("failed to get version"))
+
+	// Test failed version retrieval
+	_, err = GetServerVersion(tmpFile.Name(), "test-context")
 	if err == nil {
-		t.Error("GetServerVersion did not return an error for unreachable server")
-	}
-
-	// Test failed version retrieval (e.g., invalid kubeconfig path)
-	_, err = GetServerVersion("/nonexistent/path/kubeconfig", "test-context")
-	if err == nil {
-		t.Error("GetServerVersion did not return an error for invalid kubeconfig path")
+		t.Error("GetServerVersion did not return an error for failed version retrieval")
 	}
 }
