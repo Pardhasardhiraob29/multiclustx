@@ -4,25 +4,13 @@ import (
 	"fmt"
 
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 )
 
 // PingTest checks the reachability of a Kubernetes cluster's API server.
-func PingTest(kubeconfigPath, contextName string) error {
-	config, err := clientcmd.LoadFromFile(kubeconfigPath)
-	if err != nil {
-		return fmt.Errorf("error loading kubeconfig: %w", err)
-	}
-
-	clientConfig := clientcmd.NewDefaultClientConfig(*config, &clientcmd.ConfigOverrides{CurrentContext: contextName})
-
-	restConfig, err := clientConfig.ClientConfig()
-	if err != nil {
-		return fmt.Errorf("error creating rest config: %w", err)
-	}
-
+func PingTest(config *rest.Config) error {
 	// Attempt to create a clientset to check reachability
-	_, err = kubernetes.NewForConfig(restConfig)
+	_, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return fmt.Errorf("failed to connect to API server: %w", err)
 	}
@@ -31,20 +19,8 @@ func PingTest(kubeconfigPath, contextName string) error {
 }
 
 // GetServerVersion retrieves the Kubernetes API server version.
-func GetServerVersion(kubeconfigPath, contextName string) (string, error) {
-	config, err := clientcmd.LoadFromFile(kubeconfigPath)
-	if err != nil {
-		return "", fmt.Errorf("error loading kubeconfig: %w", err)
-	}
-
-	clientConfig := clientcmd.NewDefaultClientConfig(*config, &clientcmd.ConfigOverrides{CurrentContext: contextName})
-
-	restConfig, err := clientConfig.ClientConfig()
-	if err != nil {
-		return "", fmt.Errorf("error creating rest config: %w", err)
-	}
-
-	clientset, err := kubernetes.NewForConfig(restConfig)
+func GetServerVersion(config *rest.Config) (string, error) {
+	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return "", fmt.Errorf("error creating clientset: %w", err)
 	}
