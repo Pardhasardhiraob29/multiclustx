@@ -27,6 +27,46 @@ func (m *MockDiscoveryClient) RESTClient() rest.Interface {
 	return args.Get(0).(rest.Interface)
 }
 
+func (m *MockDiscoveryClient) Discovery() discovery.DiscoveryInterface {
+	args := m.Called()
+	return args.Get(0).(discovery.DiscoveryInterface)
+}
+
+func (m *MockDiscoveryClient) RESTClientFor(config *rest.Config) (*rest.RESTClient, error) {
+	args := m.Called(config)
+	return args.Get(0).(*rest.RESTClient), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) ServerGroups() (*metav1.APIGroupList, error) {
+	args := m.Called()
+	return args.Get(0).(*metav1.APIGroupList), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) ServerResourcesForGroupVersion(groupVersion string) (*metav1.APIResourceList, error) {
+	args := m.Called(groupVersion)
+	return args.Get(0).(*metav1.APIResourceList), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) ServerResources() ([]*metav1.APIResourceList, error) {
+	args := m.Called()
+	return args.Get(0).([]*metav1.APIResourceList), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) ServerPreferredResources() ([]*metav1.APIResourceList, error) {
+	args := m.Called()
+	return args.Get(0).([]*metav1.APIResourceList), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) ServerPreferredNamespacedResources() ([]*metav1.APIResourceList, error) {
+	args := m.Called()
+	return args.Get(0).([]*metav1.APIResourceList), args.Error(1)
+}
+
+func (m *MockDiscoveryClient) OpenAPISchema() (*openapi_v2.Document, error) {
+	args := m.Called()
+	return args.Get(0).(*openapi_v2.Document), args.Error(1)
+}
+
 // MockClientset is a mock implementation of kubernetes.Interface.
 type MockClientset struct {
 	mock.Mock
