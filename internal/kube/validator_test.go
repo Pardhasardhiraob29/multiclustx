@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	version "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
 	corev1typed "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -46,16 +45,14 @@ func (m *MockClientset) CoreV1() corev1typed.CoreV1Interface {
 // ... (other mock methods for other API groups if needed)
 
 func TestPingTest(t *testing.T) {
-	// Create a mock clientset
-	mockClientset := new(MockClientset)
+	// Create a mock discovery client
 	mockDiscoveryClient := new(MockDiscoveryClient)
 
 	// Configure mock for successful ping
-	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
 
 	// Test successful ping
-	err := PingTest(mockClientset)
+	err := PingTest(mockDiscoveryClient)
 	if err != nil {
 		t.Errorf("PingTest failed: %v", err)
 	}
@@ -64,23 +61,21 @@ func TestPingTest(t *testing.T) {
 	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("connection refused"))
 
 	// Test failed ping
-	err = PingTest(mockClientset)
+	err = PingTest(mockDiscoveryClient)
 	if err == nil {
 		t.Error("PingTest did not return an error for failed connection")
 	}
 }
 
 func TestGetServerVersion(t *testing.T) {
-	// Create a mock clientset
-	mockClientset := new(MockClientset)
+	// Create a mock discovery client
 	mockDiscoveryClient := new(MockDiscoveryClient)
 
 	// Configure mock for successful version retrieval
-	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
 
 	// Test successful version retrieval
-	version, err := GetServerVersion(mockClientset)
+	version, err := GetServerVersion(mockDiscoveryClient)
 	if err != nil {
 		t.Errorf("GetServerVersion failed: %v", err)
 	}
@@ -93,7 +88,7 @@ func TestGetServerVersion(t *testing.T) {
 	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("failed to get version"))
 
 	// Test failed version retrieval
-	_, err = GetServerVersion(mockClientset)
+	_, err = GetServerVersion(mockDiscoveryClient)
 	if err == nil {
 		t.Error("GetServerVersion did not return an error for failed version retrieval")
 	}
