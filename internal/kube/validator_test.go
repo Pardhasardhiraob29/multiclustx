@@ -11,7 +11,6 @@ import (
 
 	corev1typed "k8s.io/client-go/kubernetes/typed/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	openapi_v2 "k8s.io/kube-openapi/pkg/apis/openapi-spec/v2"
 )
 
 // MockDiscoveryClient is a mock implementation of DiscoveryInterface.
@@ -64,10 +63,7 @@ func (m *MockDiscoveryClient) ServerPreferredNamespacedResources() ([]*metav1.AP
 	return args.Get(0).([]*metav1.APIResourceList), args.Error(1)
 }
 
-func (m *MockDiscoveryClient) OpenAPISchema() (*openapi_v2.Document, error) {
-	args := m.Called()
-	return args.Get(0).(*openapi_v2.Document), args.Error(1)
-}
+
 
 // MockClientset is a mock implementation of kubernetes.Interface.
 type MockClientset struct {
