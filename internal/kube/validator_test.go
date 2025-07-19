@@ -2,15 +2,20 @@ package kube
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 // MockDiscoveryClient is a mock implementation of DiscoveryInterface.
@@ -75,7 +80,7 @@ func TestPingTest(t *testing.T) {
 	}
 	defer tmpFile.Close()
 
-	err = clientcmd.WriteToFile(config, tmpFile.Name())
+	err = clientcmd.WriteToFile(*config, tmpFile.Name())
 	if err != nil {
 		t.Fatalf("Failed to write kubeconfig to file: %v", err)
 	}
@@ -126,7 +131,7 @@ func TestGetServerVersion(t *testing.T) {
 	}
 	defer tmpFile.Close()
 
-	err = clientcmd.WriteToFile(config, tmpFile.Name())
+	err = clientcmd.WriteToFile(*config, tmpFile.Name())
 	if err != nil {
 		t.Fatalf("Failed to write kubeconfig to file: %v", err)
 	}
