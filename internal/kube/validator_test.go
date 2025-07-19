@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	version "k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
@@ -56,27 +57,18 @@ func TestPingTest(t *testing.T) {
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
 
-	// Create a dummy kubeconfig for the test
-	config := &api.Config{
-		CurrentContext: "test-context",
-		Contexts: map[string]*api.Context{
-			"test-context": {},
-		},
+	// Override kubernetes.NewForConfig to return our mock clientset
+	oldNewForConfig := kubernetes.NewForConfig
+	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
+		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
 	}
-	// Write the kubeconfig to a temporary file
-	tmpFile, err := os.CreateTemp("", "kubeconfig")
-	if err != nil {
-		t.Fatalf("Failed to create temp kubeconfig file: %v", err)
-	}
-	defer tmpFile.Close()
+	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
 
-	err = clientcmd.WriteToFile(*config, tmpFile.Name())
-	if err != nil {
-		t.Fatalf("Failed to write kubeconfig to file: %v", err)
-	}
+	// Create a dummy rest.Config
+	restConfig := &rest.Config{}
 
 	// Test successful ping
-	err = PingTest(tmpFile.Name(), "test-context")
+	err := PingTest(restConfig)
 	if err != nil {
 		t.Errorf("PingTest failed: %v", err)
 	}
@@ -85,7 +77,7 @@ func TestPingTest(t *testing.T) {
 	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("connection refused"))
 
 	// Test failed ping
-	err = PingTest(tmpFile.Name(), "test-context")
+	err = PingTest(restConfig)
 	if err == nil {
 		t.Error("PingTest did not return an error for failed connection")
 	}
@@ -100,27 +92,18 @@ func TestGetServerVersion(t *testing.T) {
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
 	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
 
-	// Create a dummy kubeconfig for the test
-	config := &api.Config{
-		CurrentContext: "test-context",
-		Contexts: map[string]*api.Context{
-			"test-context": {},
-		},
+	// Override kubernetes.NewForConfig to return our mock clientset
+	oldNewForConfig := kubernetes.NewForConfig
+	kubernetes.NewForConfig = func(*rest.Config) (*kubernetes.Clientset, error) {
+		return kubernetes.NewClientset(mockClientset.Discovery().RESTClient()), nil
 	}
-	// Write the kubeconfig to a temporary file
-	tmpFile, err := os.CreateTemp("", "kubeconfig")
-	if err != nil {
-		t.Fatalf("Failed to create temp kubeconfig file: %v", err)
-	}
-	defer tmpFile.Close()
+	defer func() { kubernetes.NewForConfig = oldNewForConfig }()
 
-	err = clientcmd.WriteToFile(*config, tmpFile.Name())
-	if err != nil {
-		t.Fatalf("Failed to write kubeconfig to file: %v", err)
-	}
+	// Create a dummy rest.Config
+	restConfig := &rest.Config{}
 
 	// Test successful version retrieval
-	version, err := GetServerVersion(tmpFile.Name(), "test-context")
+	version, err := GetServerVersion(restConfig)
 	if err != nil {
 		t.Errorf("GetServerVersion failed: %v", err)
 	}
@@ -133,7 +116,7 @@ func TestGetServerVersion(t *testing.T) {
 	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("failed to get version"))
 
 	// Test failed version retrieval
-	_, err = GetServerVersion(tmpFile.Name(), "test-context")
+	_, err = GetServerVersion(restConfig)
 	if err == nil {
 		t.Error("GetServerVersion did not return an error for failed version retrieval")
 	}
