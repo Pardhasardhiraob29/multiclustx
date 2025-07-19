@@ -22,7 +22,7 @@ type MockDiscoveryClient struct {
 
 func (m *MockDiscoveryClient) ServerVersion() (*version.Info, error) {
 	args := m.Called()
-	return args.Get(0).(version.Info), args.Error(1)
+	return args.Get(0).(*version.Info), args.Error(1)
 }
 
 func (m *MockDiscoveryClient) RESTClient() rest.Interface {
@@ -54,7 +54,7 @@ func TestPingTest(t *testing.T) {
 
 	// Configure mock for successful ping
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
-	mockDiscoveryClient.On("ServerVersion").Return(version.Info{}, nil)
+	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{}, nil)
 
 	// Create a dummy kubeconfig for the test
 	config := &api.Config{
@@ -82,7 +82,7 @@ func TestPingTest(t *testing.T) {
 	}
 
 	// Configure mock for failed ping
-	mockDiscoveryClient.On("ServerVersion").Return(version.Info{}, errors.New("connection refused"))
+	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("connection refused"))
 
 	// Test failed ping
 	err = PingTest(tmpFile.Name(), "test-context")
@@ -98,7 +98,7 @@ func TestGetServerVersion(t *testing.T) {
 
 	// Configure mock for successful version retrieval
 	mockClientset.On("Discovery").Return(mockDiscoveryClient)
-	mockDiscoveryClient.On("ServerVersion").Return(version.Info{GitVersion: "v1.23.4"}, nil)
+	mockDiscoveryClient.On("ServerVersion").Return(&version.Info{GitVersion: "v1.23.4"}, nil)
 
 	// Create a dummy kubeconfig for the test
 	config := &api.Config{
@@ -130,7 +130,7 @@ func TestGetServerVersion(t *testing.T) {
 	}
 
 	// Configure mock for failed version retrieval
-	mockDiscoveryClient.On("ServerVersion").Return(version.Info{}, errors.New("failed to get version"))
+	mockDiscoveryClient.On("ServerVersion").Return(nil, errors.New("failed to get version"))
 
 	// Test failed version retrieval
 	_, err = GetServerVersion(tmpFile.Name(), "test-context")
