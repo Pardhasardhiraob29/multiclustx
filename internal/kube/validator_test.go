@@ -10,6 +10,8 @@ import (
 	"k8s.io/client-go/rest"
 
 	corev1typed "k8s.io/client-go/kubernetes/typed/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	openapi_v2 "k8s.io/kube-openapi/pkg/apis/openapi-spec/v2"
 )
 
 // MockDiscoveryClient is a mock implementation of DiscoveryInterface.
